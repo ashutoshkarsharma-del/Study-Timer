@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .widget-container {
+            width: 100%;
+            max-width: 320px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 28px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .timer-display {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .time-value {
+            font-size: 64px;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            line-height: 1.2;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 18px 24px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .action-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: brightness(1.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .action-button:hover::before {
+            opacity: 1;
+        }
+
+        .action-button.study {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .action-button.study:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-button.study:active {
+            transform: translateY(0);
+        }
+
+        .action-button.stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+                            0 0 20px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+                            0 0 30px rgba(239, 68, 68, 0.5);
+            }
+        }
+
+        .action-button.stop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5),
+                        0 0 30px rgba(239, 68, 68, 0.5);
+        }
+
+        .action-button.stop:active {
+            transform: translateY(0);
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .reset-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .reset-button:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+        }
+
+        .reset-button:active {
+            transform: scale(0.98);
+        }
+
+        .sessions-counter {
+            text-align: right;
+        }
+
+        .sessions-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .sessions-count {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+            font-variant-numeric: tabular-nums;
+        }
+
+        @media (max-width: 480px) {
+            .widget-container {
+                max-width: 100%;
+                padding: 28px 20px;
+            }
+
+            .time-value {
+                font-size: 48px;
+            }
+
+            .action-button {
+                font-size: 16px;
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="timer-display">
+            <div class="time-value" id="timerDisplay">00:00:00</div>
+            <div class="timer-label">Study Time</div>
+        </div>
+
+        <button class="action-button study" id="actionButton">Study</button>
+
+        <div class="footer">
+            <button class="reset-button" id="resetButton">Reset</button>
+            <div class="sessions-counter">
+                <div class="sessions-label">Sessions</div>
+                <div class="sessions-count" id="sessionsCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class StudyTimer {
+            constructor() {
+                this.isRunning = false;
+                this.seconds = 0;
+                this.sessionsCompleted = 0;
+                this.intervalId = null;
+
+                this.actionButton = document.getElementById('actionButton');
+                this.resetButton = document.getElementById('resetButton');
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.sessionsCountDisplay = document.getElementById('sessionsCount');
+
+                this.bindEvents();
+                this.loadState();
+            }
+
+            bindEvents() {
+                this.actionButton.addEventListener('click', () => this.toggleTimer());
+                this.resetButton.addEventListener('click', () => this.resetTimer());
+            }
+
+            toggleTimer() {
+                if (this.isRunning) {
+                    this.stopTimer();
+                } else {
+                    this.startTimer();
+                }
+            }
+
+            startTimer() {
+                this.isRunning = true;
+                this.actionButton.textContent = 'Stop';
+                this.actionButton.classList.remove('study');
+                this.actionButton.classList.add('stop');
+
+                this.intervalId = setInterval(() => {
+                    this.seconds++;
+                    this.updateDisplay();
+                }, 1000);
+            }
+
+            stopTimer() {
+                this.isRunning = false;
+                this.actionButton.textContent = 'Study';
+                this.actionButton.classList.remove('stop');
+                this.actionButton.classList.add('study');
+
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+
+                if (this.seconds > 0) {
+                    this.sessionsCompleted++;
+                    this.updateSessionsDisplay();
+                    this.saveState();
+                }
+            }
+
+            resetTimer() {
+                this.stopTimer();
+                this.seconds = 0;
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                const hours = Math.floor(this.seconds / 3600);
+                const minutes = Math.floor((this.seconds % 3600) / 60);
+                const secs = this.seconds % 60;
+
+                const formatted = [hours, minutes, secs]
+                    .map(val => String(val).padStart(2, '0'))
+                    .join(':');
+
+                this.timerDisplay.textContent = formatted;
+            }
+
+            updateSessionsDisplay() {
+                this.sessionsCountDisplay.textContent = this.sessionsCompleted;
+            }
+
+            saveState() {
+                localStorage.setItem('studyTimer_sessions', JSON.stringify(this.sessionsCompleted));
+            }
+
+            loadState() {
+                const saved = localStorage.getItem('studyTimer_sessions');
+                if (saved) {
+                    this.sessionsCompleted = JSON.parse(saved);
+                    this.updateSessionsDisplay();
+                }
+            }
+        }
+
+        // Initialize the timer when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new StudyTimer();
+        });
+    </script>
+</body>
+</html>
